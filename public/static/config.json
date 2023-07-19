@@ -1,5 +1,5 @@
 {
-  "API_BASE_URL": "",
+  "API_BASE_URL": "https://app-dtrack-apiserver.azurewebsites.net",
   "API_WITH_CREDENTIALS": "",
   "OIDC_ISSUER": "",
   "OIDC_CLIENT_ID": "",
