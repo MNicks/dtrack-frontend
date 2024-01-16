@@ -245,9 +245,16 @@ import ProjectCreateProjectModal from "./ProjectCreateProjectModal";
             sortable: true
           },
           {
+            title: this.$t('message.components'),
+            field: "metrics.components",
+            sortable: true,
+            visible: false
+          },
+          {
             title: this.$t('message.policy_violations'),
-            field: "metrics",
-            formatter: function (metrics) {
+            field: "metrics.policyViolationsTotal", // this column uses other fields, but the field id must be unique
+            formatter: function (_, row) {
+              let metrics = row.metrics
               if (typeof metrics === "undefined") {
                 return "-"; // No vulnerability info available
               }
@@ -264,9 +271,10 @@ import ProjectCreateProjectModal from "./ProjectCreateProjectModal";
           },
           {
             title: this.$t('message.vulnerabilities'),
-            field: "metrics",
+            field: "metrics.vulnerabilities", // this column uses other fields, but the field id must be unique
             sortable: false,
-            formatter(metrics, row, index) {
+            formatter(_, row) {
+              let metrics = row.metrics
               if (typeof metrics === "undefined") {
                 return "-"; // No vulnerability info available
               }
