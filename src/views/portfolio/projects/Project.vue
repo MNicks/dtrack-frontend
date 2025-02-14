@@ -39,20 +39,52 @@
                         ></i
                       ></a>
                       <ul class="dropdown-menu">
-                        <span v-for="projectVersion in project.versions">
+                        <span v-for="projectVersion in activeProjectVersions">
                           <b-dropdown-item
                             :to="{
                               name: 'Project',
                               params: { uuid: projectVersion.uuid },
                             }"
-                            >{{ projectVersion.version }}</b-dropdown-item
                           >
+                            {{ projectVersion.version }}
+                          </b-dropdown-item>
                         </span>
+
+                        <b-dropdown-group
+                          v-if="inactiveProjectVersions.length > 0"
+                          :header="$t('message.inactive_versions')"
+                        >
+                          <span
+                            v-for="projectVersion in inactiveProjectVersions"
+                          >
+                            <b-dropdown-item
+                              :to="{
+                                name: 'Project',
+                                params: { uuid: projectVersion.uuid },
+                              }"
+                            >
+                              {{ projectVersion.version }}
+                            </b-dropdown-item>
+                          </span>
+                        </b-dropdown-group>
                       </ul>
                     </li>
                   </ol>
                   {{ project.version }}
+                  <i
+                    v-if="isCollectionProject()"
+                    class="fa fa-calculator fa-fw collectionlogic-icon"
+                    v-b-tooltip.hover="{
+                      title: getCollectionLogicText(project),
+                    }"
+                  ></i>
                 </b-col>
+                <b-badge v-if="!this.project.active" :variant="'tab-warn'">
+                  {{ $t('message.inactive').toUpperCase() }}
+                </b-badge>
+                <b-badge v-if="this.project.isLatest" :variant="'tab-info'">
+                  {{ $t('message.latest_version').toUpperCase() }}
+                </b-badge>
                 <b-col class="d-none d-md-flex">
                   <span
                     class="text-muted font-xs font-italic align-text-top text-truncate"
@@ -198,7 +230,11 @@
           style="border-left: 0; border-right: 0; border-top: 0"
         />
       </b-tab>
-      <b-tab ref="components" @click="routeTo('components')">
+      <b-tab
+        ref="components"
+        @click="routeTo('components')"
+        v-if="isShowComponents()"
+      >
         <template v-slot:title
           ><i class="fa fa-cubes"></i> {{ $t('message.components') }}
           <b-badge variant="tab-total">{{ totalComponents }}</b-badge></template
@@ -210,7 +246,27 @@
           v-on:total="totalComponents = $event"
         />
       </b-tab>
-      <b-tab ref="services" @click="routeTo('services')">
+      <b-tab
+        ref="collectionprojects"
+        @click="routeTo('collectionprojects')"
+        v-if="isShowCollectionProjects()"
+        lazy
+      >
+        <template v-slot:title
+          ><i class="fa fa-sitemap"></i>
+          {{ $t('message.collection_projects') }}</template
+        >
+        <project-collection-projects
+          :key="this.uuid"
+          :uuid="this.uuid"
+          :project="this.project"
+        />
+      </b-tab>
+      <b-tab
+        ref="services"
+        @click="routeTo('services')"
+        v-if="isShowServices()"
+      >
         <template v-slot:title
           ><i class="fa fa-exchange"></i> {{ $t('message.services') }}
           <b-badge variant="tab-total">{{ totalServices }}</b-badge></template
@@ -221,7 +277,11 @@
           v-on:total="totalServices = $event"
         />
       </b-tab>
-      <b-tab ref="dependencygraph" @click="routeTo('dependencyGraph')">
+      <b-tab
+        ref="dependencygraph"
+        @click="routeTo('dependencyGraph')"
+        v-if="isShowDependencyGraph()"
+      >
         <template v-slot:title
           ><i class="fa fa-sitemap"></i> {{ $t('message.dependency_graph') }}
           <b-badge variant="tab-total">{{
@@ -237,7 +297,7 @@
       </b-tab>
       <b-tab
         ref="findings"
-        v-if="isPermitted(PERMISSIONS.VIEW_VULNERABILITY)"
+        v-if="isShowFindings()"
         @click="routeTo('findings')"
       >
         <template v-slot:title>
@@ -261,11 +321,7 @@
           v-on:total="totalFindingsIncludingAliases = $event"
         />
       </b-tab>
-      <b-tab
-        ref="epss"
-        v-if="isPermitted(PERMISSIONS.VIEW_VULNERABILITY)"
-        @click="routeTo('epss')"
-      >
+      <b-tab ref="epss" v-if="isShowFindings()" @click="routeTo('epss')">
         <template v-slot:title
           ><i class="fa fa-tasks"></i> {{ $t('message.exploit_predictions') }}
           <b-badge variant="tab-total">{{ totalEpss }}</b-badge></template
@@ -278,7 +334,7 @@
       </b-tab>
       <b-tab
         ref="policyviolations"
-        v-if="isPermitted(PERMISSIONS.VIEW_POLICY_VIOLATION)"
+        v-if="isShowPolicyViolations()"
         @click="routeTo('policyViolations')"
       >
         <template v-slot:title
@@ -287,31 +343,47 @@
             variant="tab-total"
             v-b-tooltip.hover
             :title="$t('policy_violation.total')"
-            >{{ totalViolations }}</b-badge
+            >{{
+              showSuppressedViolations
+                ? policyViolationsTotal
+                : policyViolationsUnaudited
+            }}</b-badge
           >
           <b-badge
             variant="tab-info"
             v-b-tooltip.hover
             :title="$t('policy_violation.infos')"
-            >{{ infoViolations }}</b-badge
+            >{{
+              showSuppressedViolations
+                ? policyViolationsInfoTotal
+                : policyViolationsInfoUnaudited
+            }}</b-badge
           >
           <b-badge
             variant="tab-warn"
             v-b-tooltip.hover
             :title="$t('policy_violation.warns')"
-            >{{ warnViolations }}</b-badge
+            >{{
+              showSuppressedViolations
+                ? policyViolationsWarnTotal
+                : policyViolationsWarnUnaudited
+            }}</b-badge
           >
           <b-badge
             variant="tab-fail"
             v-b-tooltip.hover
             :title="$t('policy_violation.fails')"
-            >{{ failViolations }}</b-badge
+            >{{
+              showSuppressedViolations
+                ? policyViolationsFailTotal
+                : policyViolationsFailUnaudited
+            }}</b-badge
           >
         </template>
         <project-policy-violations
           :key="this.uuid"
           :uuid="this.uuid"
-          v-on:total="totalViolations = $event"
+          v-on:showSuppressedViolations="showSuppressedViolations = $event"
         />
       </b-tab>
     </b-tabs>
@@ -332,6 +404,7 @@ import { cloneDeep } from 'lodash-es';
 import { getStyle } from '@coreui/coreui/dist/js/coreui-utilities';
 import VueEasyPieChart from 'vue-easy-pie-chart';
 import ProjectComponents from './ProjectComponents';
+import ProjectCollectionProjects from './ProjectCollectionProjects';
 import ProjectDependencyGraph from './ProjectDependencyGraph';
 import ProjectServices from './ProjectServices';
 import PortfolioWidgetRow from '../../dashboard/PortfolioWidgetRow';
@@ -347,6 +420,7 @@ import ProjectFindings from './ProjectFindings';
 import ProjectPolicyViolations from './ProjectPolicyViolations';
 import ProjectEpss from './ProjectEpss';
 import ExternalReferencesDropdown from '../../components/ExternalReferencesDropdown.vue';
+import xssFilters from 'xss-filters';
 
 export default {
   mixins: [permissionsMixin],
@@ -358,6 +432,7 @@ export default {
     ProjectPropertiesModal,
     ProjectDetailsModal,
     ProjectComponents,
+    ProjectCollectionProjects,
     ProjectDependencyGraph,
     ProjectServices,
     SeverityBarChart,
@@ -375,6 +450,12 @@ export default {
       } else {
         return this.project.name;
       }
+    },
+    activeProjectVersions() {
+      return this.project.versions.filter((version) => version.active);
+    },
+    inactiveProjectVersions() {
+      return this.project.versions.filter((version) => !version.active);
     },
   },
   data() {
@@ -400,10 +481,15 @@ export default {
       totalFindings: 0,
       totalFindingsIncludingAliases: 0,
       totalEpss: 0,
-      totalViolations: 0,
-      infoViolations: 0,
-      warnViolations: 0,
-      failViolations: 0,
+      showSuppressedViolations: false,
+      policyViolationsTotal: 0,
+      policyViolationsUnaudited: 0,
+      policyViolationsFailTotal: 0,
+      policyViolationsFailUnaudited: 0,
+      policyViolationsWarnTotal: 0,
+      policyViolationsWarnUnaudited: 0,
+      policyViolationsInfoTotal: 0,
+      policyViolationsInfoUnaudited: 0,
       tabIndex: 0,
     };
   },
@@ -430,6 +516,10 @@ export default {
         })
         .then((response) => {
           this.project = response.data;
+          // metrics are not always returned by API, fix error sometimes raised in following lines
+          if (!Object.hasOwn(this.project, 'metrics')) {
+            this.project.metrics = {};
+          }
           this.currentCritical = common.valueWithDefault(
             this.project.metrics.critical,
             0,
@@ -458,16 +548,36 @@ export default {
             this.project.metrics.findingsTotal,
             0,
           );
-          this.infoViolations = common.valueWithDefault(
-            this.project.metrics.policyViolationsInfo,
+          this.policyViolationsTotal = common.valueWithDefault(
+            this.project.metrics.policyViolationsTotal,
             0,
           );
-          this.warnViolations = common.valueWithDefault(
-            this.project.metrics.policyViolationsWarn,
+          this.policyViolationsUnaudited = common.valueWithDefault(
+            this.project.metrics.policyViolationsUnaudited,
             0,
           );
-          this.failViolations = common.valueWithDefault(
-            this.project.metrics.policyViolationsFail,
+          this.policyViolationsFailTotal = common.valueWithDefault(
+            this.project.metrics.policyViolationsFailTotal,
+            0,
+          );
+          this.policyViolationsFailUnaudited = common.valueWithDefault(
+            this.project.metrics.policyViolationsFailUnaudited,
+            0,
+          );
+          this.policyViolationsWarnTotal = common.valueWithDefault(
+            this.project.metrics.policyViolationsWarnTotal,
+            0,
+          );
+          this.policyViolationsWarnUnaudited = common.valueWithDefault(
+            this.project.metrics.policyViolationsWarnUnaudited,
+            0,
+          );
+          this.policyViolationsInfoTotal = common.valueWithDefault(
+            this.project.metrics.policyViolationsInfoTotal,
+            0,
+          );
+          this.policyViolationsInfoUnaudited = common.valueWithDefault(
+            this.project.metrics.policyViolationsInfoUnaudited,
             0,
           );
           EventBus.$emit('addCrumb', this.projectLabel);
@@ -498,6 +608,56 @@ export default {
       );
       let tab = pattern.exec(this.$route.fullPath.toLowerCase());
       return this.$refs[tab && tab[1] ? tab[1].toLowerCase() : 'overview'];
+    },
+    getCollectionLogicText: function (project) {
+      switch (project.collectionLogic) {
+        case 'NONE':
+          return '';
+        case 'AGGREGATE_DIRECT_CHILDREN':
+          return this.$t(
+            'message.collection_logic_metrics_by_aggregate_direct_children',
+          );
+        case 'AGGREGATE_DIRECT_CHILDREN_WITH_TAG':
+          const tag = !project.collectionTag
+            ? ''
+            : xssFilters.inDoubleQuotedAttr(project.collectionTag.name);
+          return this.$t(
+            'message.collection_logic_metrics_by_aggregate_direct_children_with_tags',
+            { tag: tag },
+          );
+        case 'AGGREGATE_LATEST_VERSION_CHILDREN':
+          return this.$t(
+            'message.collection_logic_metrics_by_aggregate_latest_version',
+          );
+      }
+      return '';
+    },
+    isCollectionProject: function () {
+      return this.project.collectionLogic !== 'NONE';
+    },
+    isShowComponents: function () {
+      return !this.isCollectionProject();
+    },
+    isShowCollectionProjects: function () {
+      return this.isCollectionProject();
+    },
+    isShowServices: function () {
+      return !this.isCollectionProject();
+    },
+    isShowDependencyGraph: function () {
+      return !this.isCollectionProject();
+    },
+    isShowFindings: function () {
+      return (
+        !this.isCollectionProject() &&
+        this.isPermitted(this.PERMISSIONS.VIEW_VULNERABILITY)
+      );
+    },
+    isShowPolicyViolations: function () {
+      return (
+        !this.isCollectionProject() &&
+        this.isPermitted(this.PERMISSIONS.VIEW_POLICY_VIOLATION)
+      );
     },
   },
   beforeMount() {
@@ -541,5 +701,9 @@ export default {
 }
 .badge {
   margin-right: 0.4rem;
+}
+.dropdown-menu {
+  max-height: 30rem;
+  overflow-y: auto;
 }
 </style>

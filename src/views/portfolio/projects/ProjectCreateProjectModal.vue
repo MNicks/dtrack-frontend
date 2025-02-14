@@ -26,18 +26,30 @@
             :tooltip="this.$t('message.project_name_desc')"
             :feedback-text="$t('message.required_project_name')"
           />
-          <b-input-group-form-input
-            id="project-version-input"
-            input-group-size="mb-3"
-            type="text"
-            v-model="project.version"
-            lazy="true"
-            required="false"
-            feedback="false"
-            autofocus="false"
-            :label="$t('message.version')"
-            :tooltip="this.$t('message.component_version_desc')"
-          />
+          <b-row align-v="stretch">
+            <b-col>
+              <b-input-group-form-input
+                id="project-version-input"
+                input-group-size="mb-3"
+                type="text"
+                v-model="project.version"
+                lazy="true"
+                required="false"
+                feedback="false"
+                autofocus="false"
+                :label="$t('message.version')"
+                :tooltip="this.$t('message.component_version_desc')"
+              />
+            </b-col>
+            <b-col cols="auto">
+              <b-input-group-form-switch
+                id="project-create-islatest"
+                :label="$t('message.project_is_latest')"
+                v-model="project.isLatest"
+                :show-placeholder-label="true"
+              />
+            </b-col>
+          </b-row>
           <b-input-group-form-select
             id="v-classifier-input"
             required="true"
@@ -46,6 +58,40 @@
             :label="$t('message.classifier')"
             :tooltip="$t('message.component_classifier_desc')"
           />
+          <b-input-group-form-select
+            id="v-team-input"
+            :required="requiresTeam"
+            v-model="project.team"
+            :options="availableTeams"
+            :label="$t('message.team')"
+            :tooltip="$t('message.component_team_desc')"
+            :disabled="isDisabled"
+          />
+          <b-input-group-form-select
+            id="v-collection-logic-input"
+            required="true"
+            v-model="project.collectionLogic"
+            :options="availableCollectionLogics"
+            :label="$t('message.collectionLogic')"
+            :tooltip="$t('message.project_collection_logic_desc')"
+            :readonly="this.isNotPermitted(PERMISSIONS.PORTFOLIO_MANAGEMENT)"
+            v-on:change="syncCollectionTagsVisibility"
+          />
+          <vue-tags-input
+            id="input-collectionTags"
+            v-model="collectionTagTyping"
+            :tags="collectionTags"
+            :add-on-key="addOnKeys"
+            :placeholder="$t('message.project_add_collection_tag')"
+            @tags-changed="
+              (newCollectionTags) => (this.collectionTags = newCollectionTags)
+            "
+            class="mw-100 bg-transparent text-lowercase"
+            :max-tags="1"
+            v-show="showCollectionTags"
+            :readonly="this.isNotPermitted(PERMISSIONS.PORTFOLIO_MANAGEMENT)"
+          />
+
           <div style="margin-bottom: 1rem">
             <label>Parent</label>
             <multiselect
@@ -88,6 +134,7 @@
               :tags="tags"
               :add-on-key="addOnKeys"
               :placeholder="$t('message.add_tag')"
+              :autocomplete-items="tagsAutoCompleteItems"
               @tags-changed="(newTags) => (this.tags = newTags)"
               class="mw-100 bg-transparent text-lowercase"
             />
@@ -200,11 +247,20 @@ import VueTagsInput from '@johmun/vue-tags-input';
 import { Switch as cSwitch } from '@coreui/vue';
 import permissionsMixin from '../../../mixins/permissionsMixin';
 import Multiselect from 'vue-multiselect';
+import BInputGroupFormSwitch from '@/forms/BInputGroupFormSwitch.vue';
+import common from '../../../shared/common';
+import availableClassifiersMixin from '@/mixins/availableClassifiersMixin';
+import availableCollectionLogicsMixin from '@/mixins/availableCollectionLogicsMixin';
 
 export default {
   name: 'ProjectCreateProjectModal',
-  mixins: [permissionsMixin],
+  mixins: [
+    permissionsMixin,
+    availableClassifiersMixin,
+    availableCollectionLogicsMixin,
+  ],
   components: {
+    BInputGroupFormSwitch,
     BInputGroupFormInput,
     BInputGroupFormSelect,
     VueTagsInput,
@@ -213,44 +269,35 @@ export default {
   },
   data() {
     return {
+      requiresTeam: true,
+      isDisabled: false,
       readOnlyProjectName: '',
       readOnlyProjectVersion: '',
-      availableClassifiers: [
-        {
-          value: 'APPLICATION',
-          text: this.$i18n.t('message.component_application'),
-        },
-        {
-          value: 'FRAMEWORK',
-          text: this.$i18n.t('message.component_framework'),
-        },
-        { value: 'LIBRARY', text: this.$i18n.t('message.component_library') },
-        {
-          value: 'CONTAINER',
-          text: this.$i18n.t('message.component_container'),
-        },
-        {
-          value: 'OPERATING_SYSTEM',
-          text: this.$i18n.t('message.component_operating_system'),
-        },
-        { value: 'DEVICE', text: this.$i18n.t('message.component_device') },
-        { value: 'FIRMWARE', text: this.$i18n.t('message.component_firmware') },
-        { value: 'FILE', text: this.$i18n.t('message.component_file') },
-      ],
+      availableTeams: [],
       selectableLicenses: [],
       selectedLicense: '',
       selectedParent: null,
       availableParents: [],
-      project: {},
+      project: {
+        team: [],
+        collectionLogic: 'NONE', // set default to regular project
+      },
+      teams: [],
       tag: '', // The contents of a tag as its being typed into the vue-tag-input
       tags: [], // An array of tags bound to the vue-tag-input
+      tagsAutoCompleteItems: [],
+      tagsAutoCompleteDebounce: null,
+      collectionTagTyping: '', // The contents of a collection tag as its being typed into the vue-tag-input
+      collectionTags: [], // An array of tags bound to the vue-tag-input for collection tag
+      showCollectionTags: false,
       addOnKeys: [9, 13, 32, ':', ';', ','], // Separators used when typing tags into the vue-tag-input
-      labelIcon: {
-        dataOn: '\u2713',
-        dataOff: '\u2715',
-      },
       isLoading: false,
     };
+  },
+  created() {
+    this.getACLEnabled().then(() => {
+      this.getAvailableTeams();
+    });
   },
   beforeUpdate() {
     if (this.tags.length === 0 && this.project && this.project.tags) {
@@ -266,24 +313,53 @@ export default {
       this.$root.$emit('bv::show::modal', 'projectCreateProjectModal');
     });
   },
-  computed: {
-    sortAvailableClassifiers: function () {
-      this.availableClassifiers.sort(function (a, b) {
-        return a.text.localeCompare(b.text);
-      });
-      return this.availableClassifiers;
-    },
+  computed: {},
+  watch: {
+    tag: 'searchTags',
   },
   methods: {
+    async getACLEnabled() {
+      let url = `${this.$api.BASE_URL}/${this.$api.URL_CONFIG_PROPERTY}/public/access-management/acl.enabled`;
+      let response = await this.axios.get(url);
+      this.requiresTeam = common.toBoolean(
+        response.data.propertyValue.toString(),
+      );
+    },
+    async getAvailableTeams() {
+      let url = `${this.$api.BASE_URL}/${this.$api.URL_TEAM}/visible`;
+      let response = await this.axios.get(url);
+      let convertedTeams = response.data.map((team) => {
+        return { text: team.name, value: team.uuid };
+      });
+      this.availableTeams = convertedTeams;
+      this.teams = response.data;
+      if (this.requiresTeam && this.availableTeams.length == 1) {
+        this.project.team = this.availableTeams[0].value;
+        this.isDisabled = true;
+      }
+      this.availableTeams.sort(function (a, b) {
+        return a.text.localeCompare(b.text);
+      });
+    },
     syncReadOnlyNameField: function (value) {
       this.readOnlyProjectName = value;
     },
     syncReadOnlyVersionField: function (value) {
       this.readOnlyProjectVersion = value;
     },
+    syncCollectionTagsVisibility: function (value) {
+      this.showCollectionTags = value === 'AGGREGATE_DIRECT_CHILDREN_WITH_TAG';
+    },
     createProject: function () {
       let url = `${this.$api.BASE_URL}/${this.$api.URL_PROJECT}`;
       let tagsNode = [];
+      let choosenTeams = this.teams.filter((team) => {
+        return this.project.team.includes(team.uuid);
+      });
+      let choosenTeamswithoutAPIKeys = choosenTeams.map((team) => {
+        team.apiKeys = [];
+        return team;
+      });
       let parent = null;
       if (this.selectedParent) {
         parent = { uuid: this.selectedParent.uuid };
@@ -298,12 +374,22 @@ export default {
           //license: this.selectedLicense,
           parent: parent,
           classifier: this.project.classifier,
+          accessTeams: choosenTeamswithoutAPIKeys,
+          collectionLogic: this.project.collectionLogic,
+          collectionTag:
+            this.project.collectionLogic ===
+              'AGGREGATE_DIRECT_CHILDREN_WITH_TAG' &&
+            this.collectionTags &&
+            this.collectionTags.length > 0
+              ? { name: this.collectionTags[0].text }
+              : null,
           purl: this.project.purl,
           cpe: this.project.cpe,
           swidTagId: this.project.swidTagId,
           copyright: this.project.copyright,
           tags: tagsNode,
           active: true,
+          isLatest: this.project.isLatest,
         })
         .then((response) => {
           this.$emit('refreshTable');
@@ -347,11 +433,16 @@ export default {
       });
     },
     resetValues: function () {
-      this.project = {};
+      this.project = {
+        collectionLogic: 'NONE', // set default to regular project
+        team: [],
+      };
       this.tag = '';
       this.tags = [];
       this.selectedParent = null;
       this.availableParents = [];
+      this.collectionTags = [];
+      this.showCollectionTags = false;
     },
     createProjectLabel: function (project) {
       if (project.version) {
@@ -373,6 +464,21 @@ export default {
           this.isLoading = false;
         });
       }
+    },
+    searchTags: function () {
+      if (!this.tag) {
+        return;
+      }
+
+      clearTimeout(this.tagsAutoCompleteDebounce);
+      this.tagsAutoCompleteDebounce = setTimeout(() => {
+        const url = `${this.$api.BASE_URL}/${this.$api.URL_TAG}?searchText=${encodeURIComponent(this.tag)}&pageNumber=1&pageSize=6`;
+        this.axios.get(url).then((response) => {
+          this.tagsAutoCompleteItems = response.data.map((tag) => {
+            return { text: tag.name };
+          });
+        });
+      }, 250);
     },
   },
 };

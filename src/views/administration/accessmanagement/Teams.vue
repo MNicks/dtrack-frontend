@@ -90,6 +90,9 @@ export default {
             if (row.ldapUsers) {
               count += row.ldapUsers.length;
             }
+            if (row.oidcUsers) {
+              count += row.oidcUsers.length;
+            }
             return count;
           },
         },
@@ -122,10 +125,10 @@ export default {
                                               v-debounce:750ms="updateTeam" :debounce-events="'keyup'" />
                     <b-form-group :label="this.$t('admin.api_keys')">
                       <div class="list-group">
-                        <span v-for="apiKey in apiKeys">
-                          <api-key-list-group-item :team-uuid="team.uuid" :api-key="apiKey" :delete-icon="true" v-on:removeClicked="removeApiKey(apiKey)"/>
+                        <span v-for="key in sortedApiKeys">
+                          <api-key-list-group-item :team-uuid="team.uuid" :api-key="apiKeys[key]" :delete-icon="true" v-on:removeClicked="removeApiKey(apiKeys[key])" v-on:regenerateClicked="regenerateApiKey(apiKeys[key])"/>
                         </span>
-                        <actionable-list-group-item :add-icon="true" v-on:actionClicked="createApiKey()"/>
+                        <actionable-list-group-item :add-icon="true" v-on:actionClicked="createApiKey()" :tooltip="$t('admin.new_api_key_title')"/>
                       </div>
                     </b-form-group>
                     <b-form-group :label="this.$t('admin.permissions')">
@@ -168,6 +171,13 @@ export default {
                         </span>
                       </div>
                     </b-form-group>
+                    <b-form-group v-if="oidcUsers && oidcUsers.length > 0"  :label="this.$t('admin.oidc_users')">
+                      <div class="list-group">
+                        <span v-for="oidcUser in oidcUsers">
+                          <actionable-list-group-item :value="oidcUser.username" :delete-icon="true" v-on:actionClicked="removeUser(oidcUser)"/>
+                        </span>
+                      </div>
+                    </b-form-group>
                     <div style="text-align:right">
                        <b-button variant="outline-danger" @click="deleteTeam">{{ $t('admin.delete_team') }}</b-button>
                     </div>
@@ -191,19 +201,37 @@ export default {
               return {
                 team: row,
                 name: row.name,
-                apiKeys: row.apiKeys,
+                apiKeys: this.apiKeysToDict(row.apiKeys),
                 permissions: row.permissions,
                 ldapGroups: row.mappedLdapGroups,
                 mappedOidcGroups: row.mappedOidcGroups,
                 managedUsers: row.managedUsers,
                 ldapUsers: row.ldapUsers,
+                oidcUsers: row.oidcUsers,
                 labelIcon: {
                   dataOn: '\u2713',
                   dataOff: '\u2715',
                 },
               };
             },
+            computed: {
+              sortedApiKeys() {
+                return Object.keys(this.apiKeys).sort((a, b) => {
+                  return (
+                    new Date(this.apiKeys[a].created) -
+                    new Date(this.apiKeys[b].created)
+                  );
+                });
+              },
+            },
             methods: {
+              apiKeysToDict: function (apiKeys) {
+                const dict = {};
+                apiKeys.forEach((item) => {
+                  dict[item.publicId] = item;
+                });
+                return dict;
+              },
               updateTeam: function () {
                 let url = `${this.$api.BASE_URL}/${this.$api.URL_TEAM}`;
                 this.axios
@@ -236,37 +264,94 @@ export default {
                     this.$toastr.w(this.$t('condition.unsuccessful_action'));
                   });
               },
-              createApiKey() {
+              popup: function (title, message, key) {
+                const h = this.$createElement;
+                const titleVNode = h('div', {
+                  domProps: { innerHTML: title },
+                });
+                const messageVNode = h('div', { class: ['foobar'] }, [
+                  h('p', { class: ['text-center'] }, [message]),
+                  h(
+                    'pre',
+                    {
+                      class: [
+                        'b-input-group-form-input',
+                        'text-white',
+                        'plaintext',
+                      ],
+                      style: { overflowX: 'auto' },
+                    },
+                    key,
+                  ),
+                ]);
+                this.$bvModal.msgBoxOk([messageVNode], {
+                  title: [titleVNode],
+                  buttonSize: 'sm',
+                  centered: true,
+                  size: 'md',
+                  footerClass: 'd-flex justify-content-center',
+                  bodyClass: 'd-flex flex-column align-items-center',
+                });
+              },
+              createApiKey: function () {
                 let url = `${this.$api.BASE_URL}/${this.$api.URL_TEAM}/${this.team.uuid}/key`;
                 this.axios
                   .put(url)
                   .then((response) => {
-                    if (this.apiKeys) {
-                      this.apiKeys.push(response.data);
-                    } else {
-                      this.apiKeys = [response.data];
+                    if (!this.apiKeys) {
+                      this.apiKeys = {};
                     }
+                    this.$set(
+                      this.apiKeys,
+                      response.data.publicId,
+                      response.data,
+                    );
+                    this.popup(
+                      this.$t('admin.new_api_key_title'),
+                      this.$t('admin.new_api_key'),
+                      response.data.clearTextKey,
+                    );
                     this.$toastr.s(this.$t('message.updated'));
                   })
                   .catch((error) => {
+                    console.info(error);
+                    this.$toastr.w(this.$t('condition.unsuccessful_action'));
+                  });
+              },
+              regenerateApiKey: function (apiKey) {
+                let url = `${this.$api.BASE_URL}/${this.$api.URL_TEAM}/key/${apiKey.publicId}`;
+                this.axios
+                  .post(url)
+                  .then((response) => {
+                    this.$delete(this.apiKeys, apiKey.publicId);
+                    this.$set(
+                      this.apiKeys,
+                      response.data.publicId,
+                      response.data,
+                    );
+
+                    this.popup(
+                      this.$t('admin.regenerate_api_key_title'),
+                      this.$t('admin.regenerate_api_key'),
+                      response.data.clearTextKey,
+                    );
+                    this.$toastr.s(this.$t('message.updated'));
+                  })
+                  .catch((error) => {
+                    console.info(error);
                     this.$toastr.w(this.$t('condition.unsuccessful_action'));
                   });
               },
               removeApiKey: function (apiKey) {
-                let url = `${this.$api.BASE_URL}/${this.$api.URL_TEAM}/key/${apiKey.key}`;
+                let url = `${this.$api.BASE_URL}/${this.$api.URL_TEAM}/key/${apiKey.publicId}`;
                 this.axios
                   .delete(url)
                   .then((response) => {
-                    let k = [];
-                    for (let i = 0; i < this.apiKeys.length; i++) {
-                      if (this.apiKeys[i].key !== apiKey.key) {
-                        k.push(this.apiKeys[i]);
-                      }
-                    }
-                    this.apiKeys = k;
+                    this.$delete(this.apiKeys, apiKey.publicId);
                     this.$toastr.s(this.$t('message.updated'));
                   })
                   .catch((error) => {
+                    console.info(error);
                     this.$toastr.w(this.$t('condition.unsuccessful_action'));
                   });
               },
@@ -433,6 +518,15 @@ export default {
                       }
                       this.ldapUsers = k;
                     }
+                    if (this.oidcUsers) {
+                      let k = [];
+                      for (let i = 0; i < this.oidcUsers.length; i++) {
+                        if (this.oidcUsers[i].username !== user.username) {
+                          k.push(this.oidcUsers[i]);
+                        }
+                      }
+                      this.oidcUsers = k;
+                    }
                     this.$toastr.s(this.$t('message.updated'));
                   })
                   .catch((error) => {
@@ -444,7 +538,7 @@ export default {
                 if (team.apiKeys) {
                   // Some API server responses don't include API keys.
                   // Take care to not wipe existing API keys from the UI in those cases.
-                  this.apiKeys = team.apiKeys;
+                  this.apiKeys = apiKeysToDict(team.apiKeys);
                 }
                 this.permissions = team.permissions;
                 //this.ldapGroups = team.mappedLdapGroups;

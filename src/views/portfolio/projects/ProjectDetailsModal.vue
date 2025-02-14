@@ -29,27 +29,68 @@
             v-on:change="syncReadOnlyNameField"
             :readonly="this.isNotPermitted(PERMISSIONS.PORTFOLIO_MANAGEMENT)"
           />
-          <b-input-group-form-input
-            id="project-version-input"
-            input-group-size="mb-3"
-            type="text"
-            v-model="project.version"
-            lazy="true"
-            required="false"
-            feedback="false"
-            autofocus="false"
-            v-on:change="syncReadOnlyVersionField"
-            :label="$t('message.version')"
-            :tooltip="this.$t('message.component_version_desc')"
-            :readonly="this.isNotPermitted(PERMISSIONS.PORTFOLIO_MANAGEMENT)"
-          />
+          <b-row align-v="stretch">
+            <b-col>
+              <b-input-group-form-input
+                id="project-version-input"
+                input-group-size="mb-3"
+                type="text"
+                v-model="project.version"
+                lazy="true"
+                required="false"
+                feedback="false"
+                autofocus="false"
+                v-on:change="syncReadOnlyVersionField"
+                :label="$t('message.version')"
+                :tooltip="this.$t('message.component_version_desc')"
+                :readonly="
+                  this.isNotPermitted(PERMISSIONS.PORTFOLIO_MANAGEMENT)
+                "
+              />
+            </b-col>
+            <b-col cols="auto">
+              <b-input-group-form-switch
+                id="project-details-islatest"
+                :label="$t('message.project_is_latest')"
+                v-model="project.isLatest"
+                :show-placeholder-label="true"
+                :readonly="
+                  this.isNotPermitted(PERMISSIONS.PORTFOLIO_MANAGEMENT)
+                "
+              />
+            </b-col>
+          </b-row>
           <b-input-group-form-select
             id="v-classifier-input"
             required="true"
             v-model="project.classifier"
-            :options="availableClassifiers"
+            :options="sortAvailableClassifiers"
             :label="$t('message.classifier')"
             :tooltip="$t('message.component_classifier_desc')"
+            :readonly="this.isNotPermitted(PERMISSIONS.PORTFOLIO_MANAGEMENT)"
+          />
+          <b-input-group-form-select
+            id="v-collection-logic-input"
+            required="true"
+            v-model="project.collectionLogic"
+            :options="availableCollectionLogics"
+            :label="$t('message.collectionLogic')"
+            :tooltip="$t('message.project_collection_logic_desc')"
+            :readonly="this.isNotPermitted(PERMISSIONS.PORTFOLIO_MANAGEMENT)"
+            v-on:change="syncCollectionTagsVisibility"
+          />
+          <vue-tags-input
+            id="input-collectionTags"
+            v-model="collectionTagTyping"
+            :tags="collectionTags"
+            :add-on-key="addOnKeys"
+            :placeholder="$t('message.project_add_collection_tag')"
+            @tags-changed="
+              (newCollectionTags) => (this.collectionTags = newCollectionTags)
+            "
+            class="mw-100 bg-transparent text-lowercase"
+            :max-tags="1"
+            v-show="showCollectionTags"
             :readonly="this.isNotPermitted(PERMISSIONS.PORTFOLIO_MANAGEMENT)"
           />
           <div style="margin-bottom: 1rem">
@@ -95,27 +136,23 @@
               :tags="tags"
               :add-on-key="addOnKeys"
               :placeholder="$t('message.add_tag')"
+              :autocomplete-items="tagsAutoCompleteItems"
               @tags-changed="(newTags) => (this.tags = newTags)"
               class="mw-100 bg-transparent text-lowercase"
               :readonly="this.isNotPermitted(PERMISSIONS.PORTFOLIO_MANAGEMENT)"
             />
           </b-form-group>
-          <c-switch
-            id="input-5"
-            class="mx-1"
-            color="primary"
+          <b-input-group-form-switch
+            id="project-details-active"
+            :label-on="$t('message.active')"
+            :label-off="$t('message.inactive')"
             v-model="project.active"
-            label
+            :tooltip="$t('message.inactive_active_children')"
             :disabled="
               this.isNotPermitted(PERMISSIONS.PORTFOLIO_MANAGEMENT) ||
               (project.active && this.hasActiveChild(project))
             "
-            v-bind="labelIcon"
-            v-b-tooltip.hover
-            :title="$t('message.inactive_active_children')"
-            @change="syncActiveLabel"
           />
-          {{ projectActiveLabel }}
           <p></p>
           <b-input-group-form-input
             id="project-uuid"
@@ -451,11 +488,19 @@ import permissionsMixin from '../../../mixins/permissionsMixin';
 import common from '../../../shared/common';
 import Multiselect from 'vue-multiselect';
 import xssFilters from 'xss-filters';
+import BInputGroupFormSwitch from '@/forms/BInputGroupFormSwitch.vue';
+import availableClassifiersMixin from '@/mixins/availableClassifiersMixin';
+import availableCollectionLogicsMixin from '@/mixins/availableCollectionLogicsMixin';
 
 export default {
   name: 'ProjectDetailsModal',
-  mixins: [permissionsMixin],
+  mixins: [
+    permissionsMixin,
+    availableClassifiersMixin,
+    availableCollectionLogicsMixin,
+  ],
   components: {
+    BInputGroupFormSwitch,
     BInputGroupFormInput,
     BInputGroupFormSelect,
     VueTagsInput,
@@ -470,36 +515,16 @@ export default {
     return {
       readOnlyProjectName: '',
       readOnlyProjectVersion: '',
-      projectActiveLabel: this.project.active
-        ? this.$i18n.t('message.active')
-        : this.$i18n.t('message.inactive'),
-      availableClassifiers: [
-        {
-          value: 'APPLICATION',
-          text: this.$i18n.t('message.component_application'),
-        },
-        {
-          value: 'FRAMEWORK',
-          text: this.$i18n.t('message.component_framework'),
-        },
-        { value: 'LIBRARY', text: this.$i18n.t('message.component_library') },
-        {
-          value: 'CONTAINER',
-          text: this.$i18n.t('message.component_container'),
-        },
-        {
-          value: 'OPERATING_SYSTEM',
-          text: this.$i18n.t('message.component_operating_system'),
-        },
-        { value: 'DEVICE', text: this.$i18n.t('message.component_device') },
-        { value: 'FIRMWARE', text: this.$i18n.t('message.component_firmware') },
-        { value: 'FILE', text: this.$i18n.t('message.component_file') },
-      ],
       parent: null,
       selectedParent: null,
       availableParents: [],
       tag: '', // The contents of a tag as its being typed into the vue-tag-input
       tags: [], // An array of tags bound to the vue-tag-input
+      tagsAutoCompleteItems: [],
+      tagsAutoCompleteDebounce: null,
+      collectionTagTyping: '', // The contents of a collection tag as its being typed into the vue-tag-input
+      collectionTags: [], // An array of tags bound to the vue-tag-input for collection tag
+      showCollectionTags: false,
       addOnKeys: [9, 13, 32, ':', ';', ','], // Separators used when typing tags into the vue-tag-input
       labelIcon: {
         dataOn: '\u2713',
@@ -648,9 +673,16 @@ export default {
       this.$root.$emit('bv::show::modal', 'projectDetailsModal');
     });
   },
+  watch: {
+    tag: 'searchTags',
+  },
   methods: {
     initializeTags: function () {
       this.tags = (this.project.tags || []).map((tag) => ({ text: tag.name }));
+      this.collectionTags = this.project.collectionTag
+        ? [{ text: this.project.collectionTag.name }]
+        : [];
+      this.syncCollectionTagsVisibility(this.project.collectionLogic);
     },
     syncReadOnlyNameField: function (value) {
       this.readOnlyProjectName = value;
@@ -658,10 +690,8 @@ export default {
     syncReadOnlyVersionField: function (value) {
       this.readOnlyProjectVersion = value;
     },
-    syncActiveLabel: function (value) {
-      this.projectActiveLabel = value
-        ? this.$t('message.active')
-        : this.$t('message.inactive');
+    syncCollectionTagsVisibility: function (value) {
+      this.showCollectionTags = value === 'AGGREGATE_DIRECT_CHILDREN_WITH_TAG';
     },
     updateProject: function () {
       let url = `${this.$api.BASE_URL}/${this.$api.URL_PROJECT}`;
@@ -682,12 +712,21 @@ export default {
           version: this.project.version,
           description: this.project.description,
           classifier: this.project.classifier,
+          collectionLogic: this.project.collectionLogic,
+          collectionTag:
+            this.project.collectionLogic ===
+              'AGGREGATE_DIRECT_CHILDREN_WITH_TAG' &&
+            this.collectionTags &&
+            this.collectionTags.length > 0
+              ? { name: this.collectionTags[0].text }
+              : null,
           parent: parent,
           cpe: this.project.cpe,
           purl: this.project.purl,
           swidTagId: this.project.swidTagId,
           tags: tagsNode,
           active: this.project.active,
+          isLatest: this.project.isLatest,
           externalReferences: this.project.externalReferences,
         })
         .then((response) => {
@@ -702,19 +741,27 @@ export default {
           this.$root.$emit('bv::hide::modal', 'projectDetailsModal');
         });
     },
-    deleteProject: function () {
+    deleteProject: async function () {
       this.$root.$emit('bv::hide::modal', 'projectDetailsModal');
-      let url =
-        `${this.$api.BASE_URL}/${this.$api.URL_PROJECT}/` + this.project.uuid;
-      this.axios
-        .delete(url)
-        .then((response) => {
-          this.$toastr.s(this.$t('message.project_deleted'));
-          this.$router.replace({ name: 'Projects' });
-        })
-        .catch((error) => {
-          this.$toastr.w(this.$t('condition.unsuccessful_action'));
-        });
+      let confirmed = await this.$bvModal.msgBoxConfirm(
+        this.$t('message.project_delete_message'),
+        {
+          title: this.$t('message.project_delete_title'),
+        },
+      );
+      if (confirmed) {
+        let url =
+          `${this.$api.BASE_URL}/${this.$api.URL_PROJECT}/` + this.project.uuid;
+        this.axios
+          .delete(url)
+          .then((response) => {
+            this.$toastr.s(this.$t('message.project_deleted'));
+            this.$router.replace({ name: 'Projects' });
+          })
+          .catch((error) => {
+            this.$toastr.w(this.$t('condition.unsuccessful_action'));
+          });
+      }
     },
     hasActiveChild: function (project) {
       return (
@@ -749,6 +796,21 @@ export default {
           this.isLoading = false;
         });
       }
+    },
+    searchTags: function () {
+      if (!this.tag) {
+        return;
+      }
+
+      clearTimeout(this.tagsAutoCompleteDebounce);
+      this.tagsAutoCompleteDebounce = setTimeout(() => {
+        const url = `${this.$api.BASE_URL}/${this.$api.URL_TAG}?searchText=${encodeURIComponent(this.tag)}&pageNumber=1&pageSize=6`;
+        this.axios.get(url).then((response) => {
+          this.tagsAutoCompleteItems = response.data.map((tag) => {
+            return { text: tag.name };
+          });
+        });
+      }, 250);
     },
     resetValues: function () {
       this.selectedParent = this.parent;

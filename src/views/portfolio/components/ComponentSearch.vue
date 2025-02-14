@@ -279,7 +279,7 @@ export default {
         },
         {
           title: this.$t('message.swid_tagid'),
-          field: 'swid',
+          field: 'swidTagId',
           sortable: true,
           formatter(value, row, index) {
             return xssFilters.inHTMLData(common.valueWithDefault(value, ''));
@@ -330,7 +330,7 @@ export default {
           field: 'metrics',
           sortable: false,
           visible: false,
-          formatter(metrics, row, index) {
+          formatter: function (metrics, row, index) {
             if (typeof metrics === 'undefined') {
               return '-'; // No vulnerability info available
             }
@@ -345,11 +345,12 @@ export default {
                 medium: metrics.medium,
                 low: metrics.low,
                 unassigned: metrics.unassigned,
+                $t: this.$t.bind(this),
               },
             });
             progressBar.$mount();
             return progressBar.$el.outerHTML;
-          },
+          }.bind(this),
         },
       ],
       data: [],
