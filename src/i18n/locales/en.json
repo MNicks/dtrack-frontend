@@ -10,6 +10,15 @@
     "alert_deleted": "Alert deleted",
     "alert_log_successful_publish": "Log successful publish",
     "alert_log_successful_publish_help": "Emit a log message upon successful publishing of the alert to the destination, instead of only emitting logs when issues are encountered. Aids in debugging missing alerts, or making alert publishing auditable.",
+    "alert_schedule_cron_expression": "Cron expression",
+    "alert_schedule_last_triggered_at": "Last triggered at",
+    "alert_schedule_next_trigger_at": "Next trigger at",
+    "alert_schedule_skip_publish_if_unchanged": "Skip publish if unchanged",
+    "alert_schedule_skip_publish_if_unchanged_tooltip": "Do not send an alert if nothing has changed since the last time the alert was sent.",
+    "alert_schedule_summary_warning": "The alert must be limited to one or more projects in order for summaries to work. When selecting projects to limit the alert to, consider that choosing too many projects can cause summaries to grow too large for certain destinations, leading to them being rejected.",
+    "alert_trigger_type": "Trigger type",
+    "alert_trigger_type_event": "Event",
+    "alert_trigger_type_schedule": "Schedule",
     "alerts": "Alerts",
     "analyzer_internal_desc": "The internal analyzer evaluates components against an internal vulnerability database derived from the National Vulnerability Database, GitHub Advisories (if enabled) and VulnDB (if enabled). This analyzer makes use of the Common Platform Enumeration (CPE) defined in components. Components with a valid CPE will be evaluated with this analyzer.",
     "analyzer_internal_enable": "Enable internal analyzer",
@@ -31,6 +40,8 @@
     "analyzer_snyk_why_multiple_cvss": "Why are there multiple CVSS Scores for the same vulnerability?",
     "analyzer_trivy_enable": "Enable Trivy analyzer",
     "analyzer_trivy_ignore_unfixed": "Ignore unfixed vulnerabilities",
+    "analyzer_trivy_scan_library": "Scan language-specific packages (e.g. packages installed by pip, npm, or gem)",
+    "analyzer_trivy_scan_os": "Scan OS packages managed by the OS package manager (e.g. dpkg, yum, apk)",
     "analyzer_vulndb_desc": "VulnDB is a commercial service from Risk Based Security which identifies vulnerabilities in third-party components. Dependency-Track integrates natively with the VulnDB service to provide highly accurate results. Use of this analyzer requires a valid CPE for the components being analyzed.",
     "analyzer_vulndb_enable": "Enable VulnDB analyzer",
     "analyzers": "Analyzers",
@@ -154,6 +165,11 @@
     "mapped_ldap_groups": "Mapped LDAP groups",
     "mapped_oidc_groups": "Mapped OpenID Connect Groups",
     "mapped_teams": "Mapped Teams",
+    "match_mode": {
+      "and": "Match both namespace AND name",
+      "label": "Component matching mode",
+      "or": "Match namespace OR name"
+    },
     "maven": "Maven",
     "members": "Members",
     "mime_type": "Mime type",
@@ -297,6 +313,7 @@
   "condition": {
     "forbidden": "Forbidden (403)",
     "http_request_error": "HTTP Request Error",
+    "request_validation_failed": "Request validation failed",
     "server_error": "Server Error",
     "successful": "successful",
     "unsuccessful_action": "Could not perform the requested action"
@@ -327,7 +344,8 @@
     "pt": "Portuguese (Portugal)",
     "pt-BR": "Portuguese (Brazil)",
     "ru": "Russian",
-    "zh": "Chinese"
+    "zh": "Chinese",
+    "zh-TW": "Chinese (Taiwan)"
   },
   "message": {
     "about": "About",
@@ -380,6 +398,7 @@
     "collection_logic_metrics_by_aggregate_direct_children_with_tags": "Metrics of collection project are calculated by aggregating numbers of direct children with tag '{tag}'.",
     "collection_logic_metrics_by_aggregate_latest_version": "Metrics of collection project are calculated by aggregating numbers of latest versions of direct children.",
     "collection_projects": "Collection Projects",
+    "collection_projects_using_tag": "Collection projects using tag {tag}",
     "comment": "Comment",
     "comments": "Comments",
     "component": "Component",
@@ -555,6 +574,7 @@
     "include_tags": "Include tags",
     "inherited_risk_score": "Inherited Risk Score",
     "internal": "Internal",
+    "internal_status": "Component classified as internal",
     "inventory": "Inventory",
     "inventory_with_vulnerabilities": "Inventory with Vulnerabilities",
     "justification": "Justification",
@@ -563,6 +583,7 @@
     "last_bom_import": "Last BOM Import",
     "last_measurement": "Last Measurement",
     "last_seen": "Last Seen At",
+    "last_vulnerability_analysis": "Last Vulnerability Analysis",
     "latest": "Latest",
     "latest_version": "Latest Version",
     "legal": "Legal",
@@ -585,6 +606,7 @@
     "login_desc": "Sign In to your account",
     "login_forbidden": "This account is inactive or has been suspended",
     "login_more_options": "More options",
+    "login_permission_required": "Login succeeded, but you don’t seem to have any permissions yet. Please contact your administrators for help.",
     "login_unauthorized": "Invalid username or password",
     "logout": "Logout",
     "manufacturer": "Manufacturer",
@@ -800,6 +822,7 @@
     "risk_score": "Risk Score",
     "risk_type": "Risk Type",
     "rollback": "Rollback",
+    "scope": "Scope",
     "search": "Search",
     "search_parent": "Type to search parent",
     "security_risk": "Security Risk",
@@ -947,10 +970,10 @@
     "warn": "Warn"
   },
   "vulnerability": {
-    "critical": "Critical Severity Vulnerabilities",
-    "high": "High Severity Vulnerabilities",
-    "low": "Low Severity Vulnerabilities",
-    "medium": "Medium Severity Vulnerabilities",
-    "unassigned": "Unassigned Vulnerabilities"
+    "critical": "Critical Severity Vulnerabilities (excluding aliases)",
+    "high": "High Severity Vulnerabilities (excluding aliases)",
+    "low": "Low Severity Vulnerabilities (excluding aliases)",
+    "medium": "Medium Severity Vulnerabilities (excluding aliases)",
+    "unassigned": "Unassigned Vulnerabilities (excluding aliases)"
   }
 }

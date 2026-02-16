@@ -10,6 +10,15 @@
     "alert_deleted": "Alerta excluído",
     "alert_log_successful_publish": "Registrar publicação bem-sucedida",
     "alert_log_successful_publish_help": "Emita uma mensagem de log após a publicação bem-sucedida do alerta no destino, em vez de emitir logs apenas quando forem encontrados problemas. Ajuda a depurar alertas ausentes ou a tornar a publicação de alertas auditável.",
+    "alert_schedule_cron_expression": "Expressão de Cron",
+    "alert_schedule_last_triggered_at": "Último desencadeado em",
+    "alert_schedule_next_trigger_at": "Próximo gatilho em",
+    "alert_schedule_skip_publish_if_unchanged": "Pule o público se inalterado",
+    "alert_schedule_skip_publish_if_unchanged_tooltip": "Não envie um alerta se nada mudar desde a última vez que o alerta foi enviado.",
+    "alert_schedule_summary_warning": "O alerta deve estar limitado a um ou mais projetos para que os resumos funcionem. \nAo selecionar projetos para limitar o alerta, considere que a escolha de muitos projetos pode causar resumos para crescer demais para certos destinos, levando -os a serem rejeitados.",
+    "alert_trigger_type": "Tipo de gatilho",
+    "alert_trigger_type_event": "Evento",
+    "alert_trigger_type_schedule": "Agendar",
     "alerts": "Alertas",
     "analyzer_internal_desc": "O analisador interno avalia os componentes em relação a um banco de dados de vulnerabilidades interno derivado do National Vulnerability Database, GitHub Advisories (se habilitado) e VulnDB (se habilitado). Este analisador faz uso da Common Platform Enumeration (CPE) definida em componentes. Componentes com CPE válido serão avaliados com este analisador.",
     "analyzer_internal_enable": "Habilitar analisador interno",
@@ -31,6 +40,8 @@
     "analyzer_snyk_why_multiple_cvss": "Por que existem várias pontuações CVSS para a mesma vulnerabilidade?",
     "analyzer_trivy_enable": "Habilitar analisador Trivy",
     "analyzer_trivy_ignore_unfixed": "Ignore vulnerabilidades não corrigidas",
+    "analyzer_trivy_scan_library": "Verificar pacotes específicos do idioma (por exemplo, pacotes instalados por pip, npm ou gem)",
+    "analyzer_trivy_scan_os": "Examinar os pacotes do sistema operacional gerenciados pelo gerenciador de pacotes do sistema operacional (por exemplo, dpkg, yum, apk)",
     "analyzer_vulndb_desc": "VulnDB é um serviço comercial da Risk Based Security que identifica vulnerabilidades em componentes de terceiros. Dependency-Track integra-se nativamente ao serviço VulnDB para fornecer resultados altamente precisos. O uso deste analisador requer um CPE válido para os componentes que estão sendo analisados.",
     "analyzer_vulndb_enable": "Habilitar analisador VulnDB",
     "analyzers": "Analisadores",
@@ -154,6 +165,11 @@
     "mapped_ldap_groups": "Grupos LDAP mapeados",
     "mapped_oidc_groups": "Grupos OpenID Connect mapeados",
     "mapped_teams": "Equipes mapeadas",
+    "match_mode": {
+      "and": "Combine o espaço para nome e o nome",
+      "label": "Modo de correspondência de componentes",
+      "or": "Combinar namespace ou nome"
+    },
     "maven": "Maven",
     "members": "Membros",
     "mime_type": "Tipo Mime",
@@ -297,6 +313,7 @@
   "condition": {
     "forbidden": "Proibido (403)",
     "http_request_error": "Erro de solicitação HTTP",
+    "request_validation_failed": "Solicitar validação falhou",
     "server_error": "erro de servidor",
     "successful": "bem sucedido",
     "unsuccessful_action": "Não foi possível realizar a ação solicitada"
@@ -327,7 +344,8 @@
     "pt": "Português (Portugal)",
     "pt-BR": "Português (Brasil)",
     "ru": "Russo",
-    "zh": "Chinês"
+    "zh": "Chinês",
+    "zh-TW": "Chinês (Taiwan)"
   },
   "message": {
     "about": "Sobre",
@@ -380,6 +398,7 @@
     "collection_logic_metrics_by_aggregate_direct_children_with_tags": "As métricas do projeto de coleção são calculadas agregando o número de filhos diretos com a tag '{tag}'.",
     "collection_logic_metrics_by_aggregate_latest_version": "As métricas do projeto de coleta são calculadas agregando os números das versões mais recentes dos filhos diretos.",
     "collection_projects": "Projetos de Coleção",
+    "collection_projects_using_tag": "Projetos de coleção usando tag {tag}",
     "comment": "Comente",
     "comments": "Comentários",
     "component": "Componente",
@@ -555,6 +574,7 @@
     "include_tags": "Incluir tags",
     "inherited_risk_score": "Pontuação de risco herdada",
     "internal": "interno",
+    "internal_status": "Component classified as internal",
     "inventory": "Inventário",
     "inventory_with_vulnerabilities": "Inventário com vulnerabilidades",
     "justification": "Justificação",
@@ -563,6 +583,7 @@
     "last_bom_import": "Última importação de BOM",
     "last_measurement": "Última medição",
     "last_seen": "Visto por último em",
+    "last_vulnerability_analysis": "Última análise de vulnerabilidade",
     "latest": "Mais recente",
     "latest_version": "Última versão",
     "legal": "Jurídico",
@@ -585,6 +606,7 @@
     "login_desc": "Faça login em sua conta",
     "login_forbidden": "Esta conta está inativa ou foi suspensa",
     "login_more_options": "Mais opções",
+    "login_permission_required": "O login foi efetuado com sucesso, mas você parece não ter permissões ainda. Entre em contato com seus administradores para obter ajuda.",
     "login_unauthorized": "nome de usuário ou senha inválidos",
     "logout": "Sair",
     "manufacturer": "Fabricante",
@@ -800,6 +822,7 @@
     "risk_score": "Pontuação de risco",
     "risk_type": "Tipo de risco",
     "rollback": "Reverter",
+    "scope": "Escopo",
     "search": "Procurar",
     "search_parent": "Digite para pesquisar pai",
     "security_risk": "Risco de segurança",
@@ -947,10 +970,10 @@
     "warn": "Avisar"
   },
   "vulnerability": {
-    "critical": "Vulnerabilidades de gravidade crítica",
-    "high": "Vulnerabilidades de alta gravidade",
-    "low": "Vulnerabilidades de baixa gravidade",
-    "medium": "Vulnerabilidades de gravidade média",
-    "unassigned": "Vulnerabilidades não atribuídas"
+    "critical": "Vulnerabilidades de gravidade crítica (excluindo aliases)",
+    "high": "Vulnerabilidades de alta gravidade (excluindo aliases)",
+    "low": "Vulnerabilidades de baixa gravidade (excluindo aliases)",
+    "medium": "Vulnerabilidades de gravidade média (excluindo aliases)",
+    "unassigned": "Vulnerabilidades não atribuídas (excluindo aliases)"
   }
 }

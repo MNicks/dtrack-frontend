@@ -32,12 +32,6 @@
         Built On: {{ frontendTimestamp }}
       </b-col>
     </b-row>
-    <b-row class="mt-3">
-      <b-col>
-        Database Product: {{ this.dtrack.database.productName }}<br />
-        Database Version: {{ this.dtrack.database.productVersion }}
-      </b-col>
-    </b-row>
     <hr />
     <b-row>
       <b-col>
@@ -63,8 +57,10 @@
             >)
           </li>
           <li>
-            <i class="fa-li fa fa-twitter" aria-hidden="true"></i
-            ><a href="https://twitter.com/dependencytrack">Twitter</a>
+            <i class="fa-li fa fa-link" aria-hidden="true"></i
+            ><a href="https://bsky.app/profile/dependencytrack.bsky.social"
+              >Bluesky</a
+            >
           </li>
           <li>
             <i class="fa-li fa fa-link" aria-hidden="true"></i

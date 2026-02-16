@@ -10,6 +10,15 @@
     "alert_deleted": "已删除告警",
     "alert_log_successful_publish": "告警日志成功发送",
     "alert_log_successful_publish_help": "成功将告警发布到目标后发送日志消息（而不是仅在遇到问题时才发送日志），便于调试丢失的告警以及审计告警消息。",
+    "alert_schedule_cron_expression": "cron表达",
+    "alert_schedule_last_triggered_at": "最后触发",
+    "alert_schedule_next_trigger_at": "下一个触发",
+    "alert_schedule_skip_publish_if_unchanged": "如果不变，则跳过公众",
+    "alert_schedule_skip_publish_if_unchanged_tooltip": "自从上次发送警报以来，如果什么都没有更改，请勿发送警报。",
+    "alert_schedule_summary_warning": "警报必须仅限于一个或多个项目才能进行摘要。\n在选择限制警报的项目时，请考虑选择太多项目会导致摘要在某些目的地中成长太大，从而导致他们被拒绝。",
+    "alert_trigger_type": "触发类型",
+    "alert_trigger_type_event": "事件",
+    "alert_trigger_type_schedule": "日程",
     "alerts": "告警",
     "analyzer_internal_desc": "内部分析器根据来自 National Vulnerability Database、GitHub Advisories（如果已启用）和 VulnDB（如果已启用）的内部漏洞数据库评估组件。此分析器使用组件中定义的 Common Platform Enumeration (CPE)。具有有效 CPE 的组件将使用此分析器进行评估。",
     "analyzer_internal_enable": "启用内部分析器",
@@ -31,6 +40,8 @@
     "analyzer_snyk_why_multiple_cvss": "为什么同一漏洞有多个 CVSS 评分？",
     "analyzer_trivy_enable": "启用 Trivy 分析器",
     "analyzer_trivy_ignore_unfixed": "忽略未修复的漏洞",
+    "analyzer_trivy_scan_library": "扫描特定语言的软件包（例如通过 pip、npm 或 gem 安装的软件包",
+    "analyzer_trivy_scan_os": "扫描由操作系统软件包管理器（如 dpkg、yum、apk）管理的操作系统软件包",
     "analyzer_vulndb_desc": "VulnDB 是 Risk Based Security 提供的一项商业服务，可识别第三方组件中的漏洞。Dependency-Track 与 VulnDB 服务原生集成，可提供高度准确的结果。使用此分析器需要被分析组件的有效 CPE。",
     "analyzer_vulndb_enable": "启用 VulnDB 分析器",
     "analyzers": "分析器",
@@ -154,6 +165,11 @@
     "mapped_ldap_groups": "映射 LDAP 组",
     "mapped_oidc_groups": "映射的 OpenID 连接组",
     "mapped_teams": "映射团队",
+    "match_mode": {
+      "and": "匹配命名空间和名称",
+      "label": "元件匹配方式",
+      "or": "匹配命名空间或名称"
+    },
     "maven": "Maven",
     "members": "成员",
     "mime_type": "Mime 类型",
@@ -297,6 +313,7 @@
   "condition": {
     "forbidden": "禁止 (403)",
     "http_request_error": "HTTP 请求错误",
+    "request_validation_failed": "请求验证失败",
     "server_error": "服务器错误",
     "successful": "成功",
     "unsuccessful_action": "未成功执行该请求"
@@ -327,7 +344,8 @@
     "pt": "葡萄牙语（葡萄牙）",
     "pt-BR": "葡萄牙语（巴西）",
     "ru": "俄语",
-    "zh": "中文"
+    "zh": "中文",
+    "zh-TW": "中文（台湾）"
   },
   "message": {
     "about": "关于",
@@ -380,6 +398,7 @@
     "collection_logic_metrics_by_aggregate_direct_children_with_tags": "收集项目的指标是通过聚合带有标签“{tag}”的直接子项的数量来计算的。",
     "collection_logic_metrics_by_aggregate_latest_version": "收集项目的指标是通过汇总直接子项的最新版本的数量来计算的。",
     "collection_projects": "收藏项目",
+    "collection_projects_using_tag": "使用标签{tag}收集项目",
     "comment": "评论",
     "comments": "评论",
     "component": "组件",
@@ -555,6 +574,7 @@
     "include_tags": "包含标签",
     "inherited_risk_score": "遗传风险评分",
     "internal": "内部的",
+    "internal_status": "Component classified as internal",
     "inventory": "存货",
     "inventory_with_vulnerabilities": "存在漏洞的清单",
     "justification": "理由",
@@ -563,6 +583,7 @@
     "last_bom_import": "上次 BOM 导入",
     "last_measurement": "最后一次评估",
     "last_seen": "最后上线时间",
+    "last_vulnerability_analysis": "最后的漏洞分析",
     "latest": "最新的",
     "latest_version": "最新版本",
     "legal": "合法的",
@@ -585,6 +606,7 @@
     "login_desc": "登录到您的帐户",
     "login_forbidden": "此帐户处于非活动状态或已被暂停",
     "login_more_options": "更多的选择",
+    "login_permission_required": "登录成功，但您似乎还没有任何权限。请联系您的管理员寻求帮助。",
     "login_unauthorized": "用户名或密码无效",
     "logout": "登出",
     "manufacturer": "厂商",
@@ -800,6 +822,7 @@
     "risk_score": "风险评分",
     "risk_type": "风险类型",
     "rollback": "回滚",
+    "scope": "范围",
     "search": "搜索",
     "search_parent": "键入以搜索父项",
     "security_risk": "安全风险",
@@ -947,10 +970,10 @@
     "warn": "警告"
   },
   "vulnerability": {
-    "critical": "严重程度极高的漏洞",
-    "high": "高严重性漏洞",
-    "low": "低严重程度漏洞",
-    "medium": "中等严重程度漏洞",
-    "unassigned": "未指派的漏洞"
+    "critical": "严重程度极高的漏洞（不包括别名）",
+    "high": "高严重性漏洞（不包括别名）",
+    "low": "低严重程度漏洞（不包括别名）",
+    "medium": "中等严重程度漏洞（不包括别名）",
+    "unassigned": "未指派的漏洞（不包括别名）"
   }
 }

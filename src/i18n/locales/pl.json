@@ -10,6 +10,15 @@
     "alert_deleted": "Alert usunięty",
     "alert_log_successful_publish": "Zaloguj pomyślną publikację",
     "alert_log_successful_publish_help": "Emituj komunikat dziennika po pomyślnym opublikowaniu alertu w miejscu docelowym, zamiast emitować dzienniki tylko w przypadku napotkania problemów. Pomaga w debugowaniu brakujących alertów lub umożliwieniu audytu publikowania alertów.",
+    "alert_schedule_cron_expression": "Wyrażenie cron",
+    "alert_schedule_last_triggered_at": "Ostatnim uruchomiony",
+    "alert_schedule_next_trigger_at": "Następny spust",
+    "alert_schedule_skip_publish_if_unchanged": "Pomiń publicznie, jeśli jest niezmieniony",
+    "alert_schedule_skip_publish_if_unchanged_tooltip": "Nie wysyłaj ostrzeżenia, jeśli nic się nie zmieniło, odkąd ostatnio wysłano ostrzeżenie.",
+    "alert_schedule_summary_warning": "Alert musi być ograniczony do jednego lub większej liczby projektów, aby działało podsumowania. \nWybierając projekty, aby ograniczyć ostrzeżenie, zastanów się, że wybór zbyt wielu projektów może spowodować, że podsumowania rosną zbyt duże dla niektórych miejsc, co doprowadziło do odrzucenia.",
+    "alert_trigger_type": "Typ wyzwalacza",
+    "alert_trigger_type_event": "Wydarzenie",
+    "alert_trigger_type_schedule": "Harmonogram",
     "alerts": "Alerty",
     "analyzer_internal_desc": "Wewnętrzny analizator ocenia komponenty w oparciu o wewnętrzną bazę danych podatności pochodzącą z Krajowej bazy danych o podatnościach, GitHub Advisories (jeśli są włączone) i VulnDB (jeśli są włączone). Analizator ten wykorzystuje wyliczenie wspólnej platformy (CPE) zdefiniowane w komponentach. Za pomocą tego analizatora będą oceniane komponenty posiadające ważny CPE.",
     "analyzer_internal_enable": "Włącz analizator wewnętrzny",
@@ -31,6 +40,8 @@
     "analyzer_snyk_why_multiple_cvss": "Dlaczego dla tej samej luki istnieje wiele wyników CVSS?",
     "analyzer_trivy_enable": "Włącz analizator Trivy",
     "analyzer_trivy_ignore_unfixed": "Ignoruj ​​nienaprawione luki",
+    "analyzer_trivy_scan_library": "Skanowanie pakietów specyficznych dla danego języka (np. pakietów zainstalowanych przez pip, npm lub gem)",
+    "analyzer_trivy_scan_os": "Skanowanie pakietów systemu operacyjnego zarządzanych przez menedżera pakietów systemu operacyjnego (np. dpkg, yum, apk)",
     "analyzer_vulndb_desc": "VulnDB to komercyjna usługa firmy Risk Based Security, która identyfikuje luki w komponentach innych firm. Zależność-Track integruje się natywnie z usługą VulnDB, aby zapewnić bardzo dokładne wyniki. Korzystanie z tego analizatora wymaga ważnego CPE dla analizowanych składników.",
     "analyzer_vulndb_enable": "Włącz analizator VulnDB",
     "analyzers": "Analizatory",
@@ -154,6 +165,11 @@
     "mapped_ldap_groups": "Mapowane grupy LDAP",
     "mapped_oidc_groups": "Mapowane grupy połączeń OpenID",
     "mapped_teams": "Mapowane zespoły",
+    "match_mode": {
+      "and": "Dopasuj zarówno przestrzeń nazw, jak i nazwę",
+      "label": "Tryb dopasowywania komponentów",
+      "or": "Dopasuj przestrzeń nazw lub nazwę"
+    },
     "maven": "Mavena",
     "members": "Członkowie",
     "mime_type": "Typ mima",
@@ -297,6 +313,7 @@
   "condition": {
     "forbidden": "Zabronione (403)",
     "http_request_error": "Błąd żądania HTTP",
+    "request_validation_failed": "Walidacja żądania nie powiodła się",
     "server_error": "błąd serwera",
     "successful": "udany",
     "unsuccessful_action": "Nie można wykonać żądanej akcji"
@@ -327,7 +344,8 @@
     "pt": "Portugalski (Portugalia)",
     "pt-BR": "Portugalski (Brazylia)",
     "ru": "Rosyjski",
-    "zh": "Chiński"
+    "zh": "Chiński",
+    "zh-TW": "Chiński (Tajwan)"
   },
   "message": {
     "about": "O",
@@ -380,6 +398,7 @@
     "collection_logic_metrics_by_aggregate_direct_children_with_tags": "Metryki projektu kolekcji są obliczane poprzez agregację liczby bezpośrednich elementów podrzędnych ze znacznikiem „{tag}”.",
     "collection_logic_metrics_by_aggregate_latest_version": "Metryki projektu kolekcji są obliczane poprzez agregację liczby najnowszych wersji bezpośrednich elementów podrzędnych.",
     "collection_projects": "Projekty kolekcji",
+    "collection_projects_using_tag": "Projekty kolekcyjne za pomocą tag {tag}",
     "comment": "Komentarz",
     "comments": "Uwagi",
     "component": "Część",
@@ -555,6 +574,7 @@
     "include_tags": "Dołącz tagi",
     "inherited_risk_score": "Odziedziczona ocena ryzyka",
     "internal": "Wewnętrzny",
+    "internal_status": "Component classified as internal",
     "inventory": "Spis",
     "inventory_with_vulnerabilities": "Inwentarz z lukami w zabezpieczeniach",
     "justification": "Uzasadnienie",
@@ -563,6 +583,7 @@
     "last_bom_import": "Ostatni import BOM",
     "last_measurement": "Ostatni pomiar",
     "last_seen": "Ostatnio widziany w",
+    "last_vulnerability_analysis": "Ostatnia analiza podatności",
     "latest": "Najnowszy",
     "latest_version": "Ostatnia wersja",
     "legal": "Prawny",
@@ -585,6 +606,7 @@
     "login_desc": "Zaloguj się",
     "login_forbidden": "To konto jest nieaktywne lub zostało zawieszone",
     "login_more_options": "Więcej możliwości",
+    "login_permission_required": "Logowanie powiodło się, ale prawdopodobnie nie masz jeszcze żadnych uprawnień. Skontaktuj się z administratorami, aby uzyskać pomoc.",
     "login_unauthorized": "Nieprawidłowa nazwa użytkownika lub hasło",
     "logout": "Wyloguj",
     "manufacturer": "Producent",
@@ -800,6 +822,7 @@
     "risk_score": "Ocena ryzyka",
     "risk_type": "Rodzaj ryzyka",
     "rollback": "Wycofanie",
+    "scope": "Zakres",
     "search": "Szukaj",
     "search_parent": "Wpisz, aby wyszukać element nadrzędny",
     "security_risk": "Zagrożenie dla bezpieczeństwa",
@@ -947,10 +970,10 @@
     "warn": "Ostrzegać"
   },
   "vulnerability": {
-    "critical": "Luki o krytycznym znaczeniu",
-    "high": "Luki o dużej wadze",
-    "low": "Luki w zabezpieczeniach o niskiej wadze",
-    "medium": "Luki o średniej wadze",
-    "unassigned": "Nieprzypisane luki w zabezpieczeniach"
+    "critical": "Luki o krytycznym znaczeniu (z wyłączeniem aliasów)",
+    "high": "Luki o dużej wadze (z wyłączeniem aliasów)",
+    "low": "Luki w zabezpieczeniach o niskiej wadze (z wyłączeniem aliasów)",
+    "medium": "Luki o średniej wadze (z wyłączeniem aliasów)",
+    "unassigned": "Nieprzypisane luki w zabezpieczeniach (z wyłączeniem aliasów)"
   }
 }
